@@ -32,6 +32,9 @@ en:
       autosuggest_title: "Autosuggest income & spending budget"
       autosuggest_description: "This will be based on transaction history. AI can make mistakes, verify before continuing."
       continue: "Continue"
+      period_title: "Budget period"
+      period_starts_on: "Starts on the"
+    period_update_failed: "Could not create a budget for the selected period"
     name:
       custom_range: "%{start} - %{end_date}"
       month_year: "%{month}"

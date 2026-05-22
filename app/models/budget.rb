@@ -21,6 +21,17 @@ class Budget < ApplicationRecord
       date.strftime(PARAM_DATE_FORMAT).downcase
     end
 
+    # Returns the URL param for the current active budget period, accounting
+    # for custom month starts (e.g. month_start_day = 25, today = May 22 →
+    # current period started April 25, so param is "apr-YYYY", not "may-YYYY").
+    def current_param(family)
+      if family.uses_custom_month_start?
+        date_to_param(family.custom_month_start_for(Date.current))
+      else
+        date_to_param(Date.current)
+      end
+    end
+
     def param_to_date(param, family: nil)
       base_date = Date.strptime(param, PARAM_DATE_FORMAT)
       if family&.uses_custom_month_start?
@@ -70,8 +81,13 @@ class Budget < ApplicationRecord
 
     private
       def oldest_valid_budget_date(family)
-        two_years_ago = 2.years.ago.beginning_of_month
-        oldest_entry_date = family.oldest_entry_date.beginning_of_month
+        if family.uses_custom_month_start?
+          two_years_ago = family.custom_month_start_for(2.years.ago.to_date)
+          oldest_entry_date = family.custom_month_start_for(family.oldest_entry_date)
+        else
+          two_years_ago = 2.years.ago.beginning_of_month
+          oldest_entry_date = family.oldest_entry_date.beginning_of_month
+        end
         [ two_years_ago, oldest_entry_date ].min
       end
 

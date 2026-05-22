@@ -42,6 +42,19 @@ class BudgetsController < ApplicationController
     }
   end
 
+  def update_period
+    month_start_day = params[:month_start_day].to_i.clamp(1, 28)
+    Current.family.update!(month_start_day: month_start_day)
+
+    current_budget = Budget.find_or_bootstrap(Current.family, start_date: Date.current, user: Current.user)
+
+    if current_budget
+      redirect_to edit_budget_path(current_budget)
+    else
+      redirect_to budgets_path, alert: t("budgets.period_update_failed")
+    end
+  end
+
   private
 
     def budget_create_params

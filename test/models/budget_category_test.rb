@@ -255,4 +255,90 @@ class BudgetCategoryTest < ActiveSupport::TestCase
     @subcategory_inheriting_bc.stubs(:actual_spending).returns(10)
     assert @subcategory_inheriting_bc.visible_on_track?
   end
+
+  # =============================================================================
+  # suggested_daily_spending
+  # =============================================================================
+
+  test "suggested_daily_spending returns nil when not the current budget" do
+    past_budget = Budget.create!(
+      family: @family,
+      start_date: 2.months.ago.beginning_of_month,
+      end_date: 2.months.ago.end_of_month,
+      budgeted_spending: 1000,
+      currency: "USD"
+    )
+    bc = BudgetCategory.create!(budget: past_budget, category: @parent_category, budgeted_spending: 500, currency: "USD")
+    past_budget.stubs(:budget_category_actual_spending).with(bc).returns(100)
+
+    assert_nil bc.suggested_daily_spending
+  end
+
+  test "suggested_daily_spending returns daily amount for current standard-month budget" do
+    travel_to Date.new(2026, 6, 10) do
+      budget = Budget.create!(
+        family: @family,
+        start_date: Date.new(2026, 6, 1),
+        end_date: Date.new(2026, 6, 30),
+        budgeted_spending: 1000,
+        currency: "USD"
+      )
+      bc = BudgetCategory.create!(budget: budget, category: @parent_category, budgeted_spending: 600, currency: "USD")
+      budget.stubs(:budget_category_actual_spending).with(bc).returns(100)
+
+      result = bc.suggested_daily_spending
+      assert_not_nil result
+      # days_remaining = (Jun 30 - Jun 10).to_i + 1 = 20 + 1 = 21
+      assert_equal 21, result[:days_remaining]
+      assert_in_delta 500.0 / 21, result[:amount].to_d, 0.01
+    end
+  end
+
+  test "suggested_daily_spending works for custom month budget that spans two calendar months" do
+    # Budget period: May 25 – June 24 (month_start_day = 25)
+    # Today: June 10 — different calendar month than the budget start_date, which used to cause a nil return
+    @family.update!(month_start_day: 25)
+
+    travel_to Date.new(2026, 6, 10) do
+      budget = Budget.create!(
+        family: @family,
+        start_date: Date.new(2026, 5, 25),
+        end_date: Date.new(2026, 6, 24),
+        budgeted_spending: 1000,
+        currency: "USD"
+      )
+      bc = BudgetCategory.create!(budget: budget, category: @parent_category, budgeted_spending: 600, currency: "USD")
+      budget.stubs(:budget_category_actual_spending).with(bc).returns(100)
+
+      result = bc.suggested_daily_spending
+      assert_not_nil result, "should return daily spending even when today's calendar month differs from budget start month"
+      # days_remaining = (Jun 24 - Jun 10).to_i + 1 = 14 + 1 = 15
+      assert_equal 15, result[:days_remaining]
+      assert_in_delta 500.0 / 15, result[:amount].to_d, 0.01
+    end
+  end
+
+  test "suggested_daily_spending uses budget end_date not calendar end_of_month" do
+    # For a custom month budget (25th-based), end_date is the 24th of the following month,
+    # NOT the 31st (calendar end_of_month of the start date's month).
+    @family.update!(month_start_day: 25)
+
+    travel_to Date.new(2026, 5, 26) do
+      budget = Budget.create!(
+        family: @family,
+        start_date: Date.new(2026, 5, 25),
+        end_date: Date.new(2026, 6, 24),
+        budgeted_spending: 1000,
+        currency: "USD"
+      )
+      bc = BudgetCategory.create!(budget: budget, category: @parent_category, budgeted_spending: 600, currency: "USD")
+      budget.stubs(:budget_category_actual_spending).with(bc).returns(100)
+
+      result = bc.suggested_daily_spending
+      assert_not_nil result
+      # Correct: days_remaining = (Jun 24 - May 26).to_i + 1 = 29 + 1 = 30
+      # Wrong (old behaviour): days_remaining = (May 31 - May 26).to_i + 1 = 5 + 1 = 6
+      assert_equal 30, result[:days_remaining]
+    end
+  end
 end

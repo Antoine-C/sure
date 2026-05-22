@@ -5,6 +5,38 @@ class BudgetTest < ActiveSupport::TestCase
     @family = families(:empty)
   end
 
+  # =============================================================================
+  # current_param
+  # =============================================================================
+
+  test "current_param returns strftime param of today for standard month" do
+    travel_to Date.new(2026, 5, 22) do
+      assert_equal "may-2026", Budget.current_param(@family)
+    end
+  end
+
+  test "current_param returns param of custom period start, not today, for custom month" do
+    # month_start_day = 25; today = May 22 → current period started Apr 25
+    @family.update!(month_start_day: 25)
+
+    travel_to Date.new(2026, 5, 22) do
+      assert_equal "apr-2026", Budget.current_param(@family)
+    end
+  end
+
+  test "current_param returns current month param when today is on or after custom start day" do
+    # month_start_day = 25; today = May 26 → current period started May 25
+    @family.update!(month_start_day: 25)
+
+    travel_to Date.new(2026, 5, 26) do
+      assert_equal "may-2026", Budget.current_param(@family)
+    end
+  end
+
+  # =============================================================================
+  # budget_date_valid? — standard month
+  # =============================================================================
+
   test "budget_date_valid? allows going back 2 years even without entries" do
     two_years_ago = 2.years.ago.beginning_of_month
     assert Budget.budget_date_valid?(two_years_ago, family: @family)
@@ -86,6 +118,27 @@ class BudgetTest < ActiveSupport::TestCase
     travel_to Date.current.beginning_of_month do
       beyond_cap = @family.current_custom_month_period.start_date + 2.years + 1.month
       refute Budget.budget_date_valid?(beyond_cap, family: @family)
+    end
+  end
+
+  test "budget_date_valid? for custom month start allows the period that straddles the 2-year mark" do
+    # month_start_day = 25; today = Jun 10 → current custom period = May 25 – Jun 24
+    # 2 years ago = Jun 10, 2024 → custom_month_start_for that date = May 25, 2024
+    # A budget starting May 25, 2024 should be valid.
+    @family.update!(month_start_day: 25)
+
+    travel_to Date.new(2026, 6, 10) do
+      # May 25, 2024 is the custom-month start that contains 2-years-ago (Jun 10, 2024)
+      assert Budget.budget_date_valid?(Date.new(2024, 5, 25), family: @family)
+    end
+  end
+
+  test "budget_date_valid? for custom month start rejects period before oldest valid custom start" do
+    @family.update!(month_start_day: 25)
+
+    travel_to Date.new(2026, 6, 10) do
+      # The period starting Apr 25, 2024 begins before the oldest valid start (May 25, 2024)
+      refute Budget.budget_date_valid?(Date.new(2024, 4, 25), family: @family)
     end
   end
 

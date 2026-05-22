@@ -14,6 +14,33 @@
       </p>
     </div>
 
+    <%# Period-start selector: lets users pick the day their budget cycle begins (e.g. salary day) %>
+    <div class="mx-auto max-w-lg">
+      <div class="rounded-lg border border-primary bg-container p-4">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-primary"><%= t(".period_title") %></p>
+            <p class="text-xs text-secondary mt-0.5">
+              <%= l(@budget.start_date, format: :short) %> – <%= l(@budget.end_date, format: :short) %>
+            </p>
+          </div>
+
+          <%= form_with url: update_period_budgets_path, method: :patch, data: { controller: "auto-submit-form" } do |f| %>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-secondary whitespace-nowrap"><%= t(".period_starts_on") %></label>
+              <%= f.select :month_start_day,
+                  (1..28).map { |day| [localized_ordinal(day), day] },
+                  { selected: Current.family.month_start_day },
+                  {
+                    data: { auto_submit_form_target: "auto" },
+                    class: "text-sm border border-primary rounded-md px-2 py-1.5 bg-container text-primary cursor-pointer"
+                  } %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
     <div class="mx-auto max-w-lg">
       <%= styled_form_with model: @budget, class: "space-y-3", data: { controller: "budget-form" } do |f| %>
         <%= f.money_field :budgeted_spending, label: t(".budgeted_spending"), required: true, disable_currency: true %>

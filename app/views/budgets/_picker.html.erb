@@ -36,17 +36,18 @@
       <% Date::ABBR_MONTHNAMES.compact.each do |month_name| %>
         <% date = Date.strptime("#{month_name}-#{year}", "%b-%Y") %>
         <% param_key = Budget.date_to_param(date) %>
+        <% label = family.uses_custom_month_start? ? "#{month_name} #{family.month_start_day}" : month_name %>
 
         <% if Budget.budget_date_valid?(date, family: family) %>
           <%= render DS::Link.new(
             variant: "ghost",
-            text: month_name,
+            text: label,
             href: budget_path(param_key),
             full_width: true,
             frame: :_top
           ) %>
         <% else %>
-          <span class="px-3 py-2 text-subdued rounded-md"><%= month_name %></span>
+          <span class="px-3 py-2 text-subdued rounded-md"><%= label %></span>
         <% end %>
       <% end %>
     </div>
