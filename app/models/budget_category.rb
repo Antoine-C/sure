@@ -162,6 +162,11 @@ class BudgetCategory < ApplicationRecord
     available_to_spend.negative?
   end
 
+  # Budget is fully spent — exactly nothing left, and not over.
+  def achieved?
+    budgeted? && available_to_spend.zero?
+  end
+
   def budgeted?
     display_budgeted_spending.to_d.positive?
   end

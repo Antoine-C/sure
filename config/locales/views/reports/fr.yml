@@ -39,6 +39,7 @@ fr:
       no_budgets: Aucune catégorie de budget définie pour ce mois
       status:
         good: En bonne voie
+        achieved: Objectif atteint
         warning: Proche de la limite
         over: Budget dépassé
     trends:

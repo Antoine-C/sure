@@ -54,6 +54,7 @@ en:
       no_budgets: No budget categories set up for this month
       status:
         good: On Track
+        achieved: Achieved
         warning: Near Limit
         over: Over Budget
     trends:
