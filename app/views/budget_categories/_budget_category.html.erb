@@ -52,7 +52,7 @@
       <%# Progress Bar %>
       <div class="mb-3">
         <div class="h-1.5 bg-container-inset rounded-full overflow-hidden">
-          <% bar_color = budget_category.over_budget? ? "bg-red-500" : (budget_category.near_limit? ? "bg-yellow-500" : "bg-green-500") %>
+          <% bar_color = budget_category.over_budget? ? "bg-red-500" : (budget_category.achieved? ? "bg-green-500" : (budget_category.near_limit? ? "bg-yellow-500" : "bg-green-500")) %>
           <div class="h-full <%= bar_color %> rounded-full transition-all duration-500"
             style="inline-size: <%= budget_category.bar_width_percent %>%"></div>
         </div>
@@ -89,7 +89,7 @@
         <div class="whitespace-nowrap w-full sm:w-auto lg:ml-auto">
           <% if budget_category.available_to_spend >= 0 %>
             <span class="text-sm text-secondary"><%= t("reports.budget_performance.remaining") %>:</span>
-            <span class="font-medium <%= (budget_category.near_limit? ? "text-yellow-500" : "text-green-500") %> privacy-sensitive">
+            <span class="font-medium <%= (budget_category.achieved? || !budget_category.near_limit? ? "text-green-500" : "text-yellow-500") %> privacy-sensitive">
               <%= format_money(budget_category.available_to_spend_money) %>
             </span>
           <% else %>
