@@ -5,3 +5,25 @@ fr:
       uncategorized: Non catégorisé
       other_investments: Autres investissements
       investment_contributions: Contributions aux investissements
+      defaults:
+        vet: Vétérinaire
+        dog_food: Croquettes
+        home_improvement: Travaux maison
+        investment: Investissement
+        kid_investmenet: Investissement enfants
+        groceries: Courses
+        restaurants: Restaurants
+        gas: Essence
+        electricity: Électricité
+        car_loan: Crédit voiture
+        windows_loan: Crédit fenêtres
+        air_conditionner_load: Crédit climatisation
+        house_loan: Crédit maison
+        mechanic: Frais voitures
+        subscriptions: Abonnements
+        daycare: Crèche
+        shopping: Shopping
+        pharmacy: Pharmacie
+        reimbursement: Remboursements
+        transportation: Transports
+        income: Salaire
